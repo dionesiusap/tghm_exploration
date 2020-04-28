@@ -2,6 +2,7 @@
 #include <tghm_exploration/costmap_tools.h>
 
 #include <mutex>
+#include <algorithm>
 
 #include <costmap_2d/cost_values.h>
 #include <costmap_2d/costmap_2d.h>
@@ -36,11 +37,11 @@ namespace tghm
   {
     // sanity check that robot is inside costmap bounds before searching
     unsigned int pos_x_map, pos_y_map;
-    if (!costmap_->worldToMap(current_node_->centroid.x, current_node->centroid.y,
+    if (!costmap_->worldToMap(current_node_->centroid.x, current_node_->centroid.y,
                               pos_x_map, pos_y_map))
     {
       ROS_ERROR("getNextGoal: Robot out of costmap bounds, cannot search for candidate nodes");
-      return current_node_;
+      return *current_node_;
     }
     // lock the costmap during the generation of nodes
     std::lock_guard<costmap_2d::Costmap2D::mutex_t> lock(*(costmap_->getMutex()));
@@ -49,20 +50,21 @@ namespace tghm
     updateCandidateNodes();
 
     if (candidate_nodes_.size() > 0) {
-      TopologyNode* best_node = &candidate_nodes_[0];
-      for (std::vector<TopologyNode>::iterator it = candidate_nodes_.begin()
-          it != candidate_nodes_.end(); ++it)
-      {
-        if (*it.score > best_node->score) {
-          best_node = it;
+      TopologyNode best_node = candidate_nodes_[0];
+      int best_idx = 0;
+      for (int i = 0; i < candidate_nodes_.size(); i++) {
+        if (candidate_nodes_[i].score > best_node.score) {
+          best_node = candidate_nodes_[i];
+          best_idx = i;
         }
       }
 
-      TopologyNode new_map_node = *best_node;
-      map_node_.push_back(new_map_node);
+      TopologyNode new_map_node = best_node;
+      map_nodes_.push_back(new_map_node);
+      candidate_nodes_.erase(candidate_nodes_.begin()+best_idx);
 
-      current_node_ = best_node;
-      return best_node;
+      current_node_ = &new_map_node;
+      return new_map_node;
     }
     else {
       TopologyNode terminate_node;
@@ -111,7 +113,7 @@ namespace tghm
       bfs.pop();
       // iterate over 4-connected neighbourhood
       for (unsigned nbr : nhood4(idx, *costmap_)) {
-        if isCellObservableFrom(nbr, reference) {
+        if (isCellObservableFrom(nbr, reference)) {
           // add to queue all free, unvisited cells, use descending search in case
           // initialized on non-free cell
           if (grid_map_[nbr] <= grid_map_[idx] && !visited_flag[nbr]) {
@@ -121,7 +123,7 @@ namespace tghm
             // neighbour)
           } else if (isNewNodeCell(nbr, node_flag)) {
             node_flag[nbr] = true;
-            TopologyNode new_node = createNode(nbr, pos, target, node_flag);
+            TopologyNode new_node = createNode(nbr, node_flag);
             candidate_nodes_.push_back(new_node);
           }
         }
@@ -189,13 +191,13 @@ namespace tghm
     std::vector<unsigned int> idxs;
     for (int i = 0; i < candidate_nodes_.size(); i++) {
       calculateNodeScore(&candidate_nodes_[i]);
-      if (candidate_nodes_.unknown_cells * costmap_->getResolution() <
-          unknown_threshold) {
-        idx.push_back(i);
+      if (candidate_nodes_[i].unknown_cells * costmap_->getResolution() <
+          unknown_threshold_) {
+        idxs.push_back(i);
       }
     }
     
-    for (i : idxs) {
+    for (int i : idxs) {
       candidate_nodes_.erase(candidate_nodes_.begin()+i);
     }
   }
@@ -287,17 +289,17 @@ namespace tghm
       TopologyNode* curr_node = bfs.front();
       bfs.pop();
 
-      for (std::vector<TopologyNode*>::iterator it = curr_node->neighbors.begin()
+      for (std::vector<TopologyNode*>::iterator it = curr_node->neighbors.begin();
           it != curr_node->neighbors.end(); ++it)
       {
-        if (!*it->temp_v) {
-          *it->temp_v = true;
-          *it->level = curr_node->level + 1;
-          bfs.push(*it);
+        if (!(*it)->temp_v) {
+          (*it)->temp_v = true;
+          (*it)->level = curr_node->level + 1;
+          bfs.push((*it));
         }
-        if (*it->centroid == map_node->centroid) {
+        if ((*it)->centroid == map_node->centroid) {
           found == true;
-          return *it->level;
+          return (*it)->level;
         }
       }
     }
@@ -308,11 +310,11 @@ namespace tghm
 
   void TGHM::resetNodeSearch()
   {
-    for (std::vector<TopologyNode>::iterator it = map_nodes_.begin()
+    for (std::vector<TopologyNode>::iterator it = map_nodes_.begin();
          it != map_nodes_.end(); ++it)
       {
-        *it->temp_v = false;
-        *it->level = 0;
+        (*it).temp_v = false;
+        (*it).level = 0;
       }
   }
 

@@ -36,7 +36,7 @@
  *
  *********************************************************************/
 
-#include <tghm_explore/explore.h>
+#include <tghm_exploration/explore.h>
 
 #include <thread>
 
@@ -62,7 +62,6 @@ Explore::Explore()
   double min_frontier_size;
   private_nh_.param("planner_frequency", planner_frequency_, 1.0);
   private_nh_.param("progress_timeout", timeout, 30.0);
-  progress_timeout_ = ros::Duration(timeout);
   private_nh_.param("visualize", visualize_, false);
   private_nh_.param("lambda", lambda_, 1e-3);
   private_nh_.param("sensor_max_range", sensor_max_range_, 1e-3);
@@ -148,7 +147,7 @@ void Explore::visualizeNodes(const std::vector<tghm::TopologyNode>& map,
     m.scale.y = 1.0;
     m.scale.z = 1.0;
     m.points = {};
-    if (node.centroid == target_position) {
+    if (node.centroid == target) {
       m.color = purple;
     } else {
       m.color = green;
@@ -171,7 +170,7 @@ void Explore::visualizeNodes(const std::vector<tghm::TopologyNode>& map,
 
 void Explore::makePlan()
 {
-  if (status_ == ACTIVE) {
+  if (status_ == 1) {
     return;
   }
 
@@ -180,8 +179,9 @@ void Explore::makePlan()
   tghm::TopologyNode target_node = tghm_.getNextGoal();
 
   if (target_node.score == -9999) {
-    return;
+    std::cout << "SINI?" << std::endl;
     stop();
+    return;
   }
 
   geometry_msgs::Point target_position = target_node.centroid;
@@ -198,17 +198,34 @@ void Explore::makePlan()
   goal.target_pose.header.stamp = ros::Time::now();
   move_base_client_.sendGoal(
       goal, [this, target_position](
-                const actionlib::SimpleClientGoalState& status_,
+                const actionlib::SimpleClientGoalState& status,
                 const move_base_msgs::MoveBaseResultConstPtr& result) {
-        reachedGoal(status_, result, target_position);
+        reachedGoal(status, result, target_position);
       });
 }
 
-void Explore::reachedGoal(const actionlib::SimpleClientGoalState& status_,
+void Explore::reachedGoal(const actionlib::SimpleClientGoalState& status,
                           const move_base_msgs::MoveBaseResultConstPtr&,
                           const geometry_msgs::Point& frontier_goal)
 {
-  ROS_DEBUG("Reached goal with status: %s", status_.toString().c_str());
+  ROS_DEBUG("Reached goal with status: %s", status.toString().c_str());
+  if (status == actionlib::SimpleClientGoalState::PENDING) {
+      status_ = 0;
+  } else if (status == actionlib::SimpleClientGoalState::ACTIVE) {
+      status_ = 1;
+  } else if (status == actionlib::SimpleClientGoalState::RECALLED) {
+      status_ = 2;
+  } else if (status == actionlib::SimpleClientGoalState::REJECTED) {
+      status_ = 3;
+  } else if (status == actionlib::SimpleClientGoalState::PREEMPTED) {
+      status_ = 4;
+  } else if (status == actionlib::SimpleClientGoalState::ABORTED) {
+      status_ = 5;
+  } else if (status == actionlib::SimpleClientGoalState::SUCCEEDED) {
+      status_ = 6;
+  } else if (status == actionlib::SimpleClientGoalState::LOST) {
+      status_ = 7;
+  }
 }
 
 void Explore::start()

@@ -62,7 +62,7 @@ protected:
 
 private:
   costmap_2d::Costmap2D* costmap_;
-  unsigned char grid_map_;
+  unsigned char* grid_map_;
   unsigned int size_x_, size_y_;
 
   std::vector<TopologyNode> map_nodes_;

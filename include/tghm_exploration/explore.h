@@ -38,8 +38,8 @@
 #ifndef EXPLORE_H_
 #define EXPLORE_H_
 
-#include <tghm_explore/costmap_client.h>
-#include <tghm_explore/tghm.h>
+#include <tghm_exploration/costmap_client.h>
+#include <tghm_exploration/tghm.h>
 
 #include <memory>
 #include <mutex>
@@ -95,7 +95,7 @@ private:
   Costmap2DClient costmap_client_;
   actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction>
       move_base_client_;
-  actionlib::SimpleClientGoalState status_;
+  unsigned int status_;
   tghm::TGHM tghm_;
   ros::Timer exploring_timer_;
 
@@ -109,7 +109,7 @@ private:
   bool visualize_;
   double lambda_;
   double sensor_max_range_;
-  unsigned int unknown_threshold_;
+  double unknown_threshold_;
 
   // flags
   bool first_plan_;
