@@ -1,5 +1,5 @@
-#ifndef TOPOLOGY_MAP_H_
-#define TOPOLOGY_MAP_H_
+#ifndef TGHM_H_
+#define TGHM_H_
 
 #include <costmap_2d/costmap_2d.h>
 
@@ -29,8 +29,10 @@ public:
   TGHM(){}
 
   TGHM(costmap_2d::Costmap2D* costmap,
-              double lambda,
-              geometry_msgs::Point pose);
+       double lambda,
+       double sensor_max_range,
+       double unknown_threshold,
+       geometry_msgs::Point pose);
 
   TopologyNode getNextGoal();
 

@@ -1,4 +1,4 @@
-#include <tghm_exploration/topology_map.h>
+#include <tghm_exploration/tghm.h>
 #include <tghm_exploration/costmap_tools.h>
 
 #include <mutex>
@@ -15,9 +15,13 @@ namespace tghm
   
   TGHM::TGHM(costmap_2d::Costmap2D* costmap,
              double lambda,
+             double sensor_max_range,
+             double unknown_threshold,
              geometry_msgs::Point pose)
     : costmap_(costmap)
     , lambda_(lambda)
+    , sensor_max_range_(sensor_max_range)
+    , unknown_threshold_(unknown_threshold)
   {
     TopologyNode root;
     root.centroid = pose;
