@@ -1,0 +1,12 @@
+# publish and subscribe
+costmap_topic: map
+costmap_updates_topic: map_updates
+visualize: true
+
+# timing
+planner_frequency: 1.0
+
+# planner parameters
+lambda: 1.0
+sensor_max_range: 11.5
+unknown_threshold: 1.0
