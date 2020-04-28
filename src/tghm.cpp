@@ -48,20 +48,35 @@ namespace tghm
     generateNewCandidateNodes(pos_x_map, pos_y_map);
     updateCandidateNodes();
 
-    TopologyNode* best_node = &candidate_nodes_[0];
-    for (std::vector<TopologyNode>::iterator it = candidate_nodes_.begin()
-         it != candidate_nodes_.end(); ++it)
-    {
-      if (*it.score > best_node->score) {
-        best_node = it;
+    if (candidate_nodes_.size() > 0) {
+      TopologyNode* best_node = &candidate_nodes_[0];
+      for (std::vector<TopologyNode>::iterator it = candidate_nodes_.begin()
+          it != candidate_nodes_.end(); ++it)
+      {
+        if (*it.score > best_node->score) {
+          best_node = it;
+        }
       }
+
+      TopologyNode new_map_node = *best_node;
+      map_node_.push_back(new_map_node);
+
+      current_node_ = best_node;
+      return best_node;
     }
+    else {
+      TopologyNode terminate_node;
+      terminate_node.centroid.x = -9999;
+      terminate_node.centroid.y = -9999;
+      terminate_node.score = -9999;
+      terminate_node.visited = true;
+      return terminate_node;
+    }
+  }
 
-    TopologyNode new_map_node = *best_node;
-    map_node_.push_back(new_map_node);
-
-    current_node_ = best_node;
-    return best_node;
+  std::vector<TopologyNode> TGHM::getTopologicalMapVector()
+  {
+    return map_nodes_;
   }
 
   void TGHM::generateNewCandidateNodes(unsigned int pos_x_map,
@@ -173,8 +188,9 @@ namespace tghm
   {
     std::vector<unsigned int> idxs;
     for (int i = 0; i < candidate_nodes_.size(); i++) {
+      calculateNodeScore(&candidate_nodes_[i]);
       if (candidate_nodes_.unknown_cells * costmap_->getResolution() <
-          min_unknown_size_) {
+          unknown_threshold) {
         idx.push_back(i);
       }
     }
@@ -231,7 +247,7 @@ namespace tghm
     return false;
   }
 
-  void TGHM::calculateNodeCost(TopologyNode* node)
+  void TGHM::calculateNodeScore(TopologyNode* node)
   {
     unsigned int node_idx = costmap_->getIndex(node->centroid.x, node->centroid.y);
 
