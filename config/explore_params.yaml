@@ -10,3 +10,4 @@ planner_frequency: 1.0
 lambda: 1.0
 sensor_max_range: 11.5
 unknown_threshold: 1.0
+frontier_threshold: 1.0

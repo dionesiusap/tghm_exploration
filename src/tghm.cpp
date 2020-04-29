@@ -18,11 +18,13 @@ namespace tghm
              double lambda,
              double sensor_max_range,
              double unknown_threshold,
+             double frontier_threshold,
              geometry_msgs::Point pose)
     : costmap_(costmap)
     , lambda_(lambda)
     , sensor_max_range_(sensor_max_range)
     , unknown_threshold_(unknown_threshold)
+    , frontier_threshold_(frontier_threshold)
   {
     TopologyNode root;
     root.centroid = pose;
@@ -124,6 +126,8 @@ namespace tghm
           } else if (isNewNodeCell(nbr, node_flag)) {
             node_flag[nbr] = true;
             TopologyNode new_node = createNode(nbr, node_flag);
+            if (new_node.frontier_size * costmap_->getResolution() >=
+                frontier_threshold_) {
             candidate_nodes_.push_back(new_node);
           }
         }
@@ -138,6 +142,7 @@ namespace tghm
     TopologyNode output;
     output.centroid.x = 0;
     output.centroid.y = 0;
+    output.frontier_size = 0;
     output.score = 0;
     output.unknown_cells = 0;
     output.neighbors.push_back(current_node_);
@@ -168,7 +173,7 @@ namespace tghm
           costmap_->mapToWorld(mx, my, wx, wy);
 
           // update node size
-          temp_size++;
+          output.frontier_size++;
 
           // update centroid of node
           output.centroid.x += wx;

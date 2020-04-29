@@ -16,6 +16,7 @@ struct TopologyNode {
   geometry_msgs::Point centroid;
   std::vector<TopologyNode*> neighbors;
   // search utilities
+  std::uint32_t frontier_size;
   bool temp_v;
   unsigned int level;
 };
@@ -32,6 +33,7 @@ public:
        double lambda,
        double sensor_max_range,
        double unknown_threshold,
+       double frontier_threshold,
        geometry_msgs::Point pose);
 
   TopologyNode getNextGoal();
@@ -72,9 +74,9 @@ private:
   
   // exploration parameters
   double lambda_;
-  double min_unknown_size_;
   double sensor_max_range_;
   unsigned int unknown_threshold_;
+  double frontier_threshold_;
 };
 }
 #endif

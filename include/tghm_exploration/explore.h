@@ -110,6 +110,7 @@ private:
   double lambda_;
   double sensor_max_range_;
   double unknown_threshold_;
+  double frontier_threshold_;
 
   // flags
   bool first_plan_;

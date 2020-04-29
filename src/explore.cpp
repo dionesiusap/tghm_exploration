@@ -66,11 +66,13 @@ Explore::Explore()
   private_nh_.param("lambda", lambda_, 1e-3);
   private_nh_.param("sensor_max_range", sensor_max_range_, 1e-3);
   private_nh_.param("unknown_threshold", unknown_threshold_, 1e-3);
+  private_nh_.param("frontier_threshold", frontier_threshold_, 1e-3);
 
   tghm_ = tghm::TGHM(costmap_client_.getCostmap(),
                      lambda_,
                      sensor_max_range_,
                      unknown_threshold_,
+                     frontier_threshold_,
                      costmap_client_.getRobotPose().position);
 
   if (visualize_) {
@@ -126,9 +128,9 @@ void Explore::visualizeNodes(const std::vector<tghm::TopologyNode>& map,
   m.header.frame_id = costmap_client_.getGlobalFrameID();
   m.header.stamp = ros::Time::now();
   m.ns = "frontiers";
-  m.scale.x = 1.0;
-  m.scale.y = 1.0;
-  m.scale.z = 1.0;
+  m.scale.x = 0.5;
+  m.scale.y = 0.5;
+  m.scale.z = 0.5;
   m.color.r = 0;
   m.color.g = 0;
   m.color.b = 255;
@@ -179,7 +181,6 @@ void Explore::makePlan()
   tghm::TopologyNode target_node = tghm_.getNextGoal();
 
   if (target_node.score == -9999) {
-    std::cout << "SINI?" << std::endl;
     stop();
     return;
   }
