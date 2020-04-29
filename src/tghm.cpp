@@ -63,6 +63,7 @@ namespace tghm
 
       TopologyNode new_map_node = best_node;
       map_nodes_.push_back(new_map_node);
+      current_node_->neighbors.push_back(&map_nodes_.back());
       candidate_nodes_.erase(candidate_nodes_.begin()+best_idx);
 
       current_node_ = &new_map_node;
