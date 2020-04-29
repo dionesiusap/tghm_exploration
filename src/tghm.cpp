@@ -235,8 +235,8 @@ namespace tghm
     costmap_->mapToWorld(idx_x_map, idx_y_map, idx_x_world, idx_y_world);
     costmap_->mapToWorld(ref_x_map, ref_y_map, ref_x_world, ref_y_world);
 
-    double distance = sqrt(pow((double(ref_x_map) - double(idx_x_map)), 2.0) +
-                           pow((double(ref_y_map) - double(idx_y_map)), 2.0));
+    double distance = sqrt(pow((double(ref_x_world) - double(idx_x_world)), 2.0) +
+                           pow((double(ref_y_world) - double(idx_y_world)), 2.0));
 
     if (distance <= sensor_max_range_) {
       for (unsigned int nbr : nhood4(idx, *costmap_)) {
