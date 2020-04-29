@@ -37,6 +37,7 @@ namespace tghm
 
   TopologyNode TGHM::getNextGoal()
   {
+    ROS_INFO("CALLED: getNextGoal");
     // sanity check that robot is inside costmap bounds before searching
     unsigned int pos_x_map, pos_y_map;
     if (!costmap_->worldToMap(current_node_->centroid.x, current_node_->centroid.y,
@@ -87,6 +88,7 @@ namespace tghm
   void TGHM::generateNewCandidateNodes(unsigned int pos_x_map,
                                        unsigned int pos_y_map)
   {
+    ROS_INFO("CALLED: generateNewCandidateNodes");
     grid_map_ = costmap_->getCharMap();
     size_x_ = costmap_->getSizeInCellsX();
     size_y_ = costmap_->getSizeInCellsY();
@@ -129,7 +131,8 @@ namespace tghm
             TopologyNode new_node = createNode(nbr, node_flag);
             if (new_node.frontier_size * costmap_->getResolution() >=
                 frontier_threshold_) {
-            candidate_nodes_.push_back(new_node);
+              candidate_nodes_.push_back(new_node);
+            }
           }
         }
       }
@@ -139,6 +142,7 @@ namespace tghm
   TopologyNode TGHM::createNode(unsigned int initial_cell,
                                 std::vector<bool>& node_flag)
   {
+    ROS_INFO("CALLED: createNode");
     // initialize node structure
     TopologyNode output;
     output.centroid.x = 0;
@@ -194,6 +198,7 @@ namespace tghm
 
   void TGHM::updateCandidateNodes()
   {
+    ROS_INFO("CALLED: updateCandidateNodes");
     std::vector<unsigned int> idxs;
     for (int i = 0; i < candidate_nodes_.size(); i++) {
       calculateNodeScore(&candidate_nodes_[i]);
@@ -257,6 +262,7 @@ namespace tghm
 
   void TGHM::calculateNodeScore(TopologyNode* node)
   {
+    ROS_INFO("CALLED: calculateNodeScore");
     unsigned int node_idx = costmap_->getIndex(node->centroid.x, node->centroid.y);
 
     // push node centroid into queue
@@ -284,6 +290,7 @@ namespace tghm
   unsigned int TGHM::getTopologicalDistance(TopologyNode* candidate_node,
                                             TopologyNode* map_node)
   {
+    ROS_INFO("CALLED: getTopologicalDistance");
     bool found = false;
     resetNodeSearch();
     candidate_node->temp_v = true;
